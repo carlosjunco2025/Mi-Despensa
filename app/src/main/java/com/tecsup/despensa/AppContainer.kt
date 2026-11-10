@@ -22,7 +22,7 @@ class AppContainer(context: Context) {
     val itemDao: ItemDao = database.itemDao()
     val notificador: Notificador = NotificadorAndroid(appContext)
     val authRepository: AuthRepository = FirebaseAuthRepository()
-    val itemRepository: ItemRepository = ItemRepositoryImpl()
+    val itemRepository: ItemRepository = ItemRepositoryImpl(dao = itemDao)
 }
 
 /**
