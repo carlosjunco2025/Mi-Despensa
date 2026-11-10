@@ -26,7 +26,10 @@ class ItemRepositoryImpl(
         .map { entidades -> entidades.map { entidad -> entidad.toDomain() } }
 
     override suspend fun refrescar(): Result<Int> = enResultado {
-        val productos = api.listarProductos().products.map { dto -> dto.toEntity() }
+        val idsFavoritos = dao.idsFavoritos().toSet()
+        val productos = api.listarProductos().products.map { dto ->
+            dto.toEntity(esFavorito = dto.id in idsFavoritos)
+        }
         dao.upsert(productos)
         productos.size
     }

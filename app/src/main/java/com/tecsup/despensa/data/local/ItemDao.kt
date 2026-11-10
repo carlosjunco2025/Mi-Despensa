@@ -17,6 +17,9 @@ interface ItemDao {
     @Query("SELECT * FROM items WHERE id = :id LIMIT 1")
     suspend fun obtenerPorId(id: Int): ItemEntity?
 
+    @Query("SELECT id FROM items WHERE esFavorito = 1")
+    suspend fun idsFavoritos(): List<Int>
+
     @Upsert
     suspend fun upsert(items: List<ItemEntity>)
 
