@@ -20,6 +20,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -43,29 +44,53 @@ fun ListaScreen(
     modifier: Modifier = Modifier
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
+    val aviso by viewModel.aviso.collectAsStateWithLifecycle()
 
-    when (val actual = estado) {
-        is UiState.Cargando -> Cargando(modifier = modifier)
+    Column(modifier = modifier.fillMaxSize()) {
+        aviso?.let { texto ->
+            AvisoBanner(texto = texto)
+        }
 
-        is UiState.Error -> ErrorView(
-            mensaje = actual.mensaje,
-            onReintentar = viewModel::cargar,
-            modifier = modifier
-        )
+        Box(modifier = Modifier.weight(1f)) {
+            when (val actual = estado) {
+                is UiState.Cargando -> Cargando(modifier = Modifier.fillMaxSize())
 
-        is UiState.Exito -> {
-            if (actual.datos.isEmpty()) {
-                ListaVacia(
+                is UiState.Error -> ErrorView(
+                    mensaje = actual.mensaje,
                     onReintentar = viewModel::cargar,
-                    modifier = modifier
+                    modifier = Modifier.fillMaxSize()
                 )
-            } else {
-                ListaProductos(
-                    items = actual.datos,
-                    modifier = modifier
-                )
+
+                is UiState.Exito -> {
+                    if (actual.datos.isEmpty()) {
+                        ListaVacia(
+                            onReintentar = viewModel::cargar,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    } else {
+                        ListaProductos(
+                            items = actual.datos,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+                }
             }
         }
+    }
+}
+
+@Composable
+private fun AvisoBanner(texto: String) {
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.secondaryContainer
+    ) {
+        Text(
+            text = texto,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
     }
 }
 

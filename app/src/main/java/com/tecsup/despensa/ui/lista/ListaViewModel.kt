@@ -22,6 +22,9 @@ class ListaViewModel(
     private val _estado = MutableStateFlow<UiState<List<Item>>>(UiState.Cargando)
     val estado: StateFlow<UiState<List<Item>>> = _estado.asStateFlow()
 
+    private val _aviso = MutableStateFlow<String?>(null)
+    val aviso: StateFlow<String?> = _aviso.asStateFlow()
+
     private var cargaCompletada = false
 
     init {
@@ -32,6 +35,7 @@ class ListaViewModel(
     fun cargar() {
         viewModelScope.launch {
             _estado.value = UiState.Cargando
+            _aviso.value = null
             itemRepository.refrescar()
                 .onSuccess { cantidad ->
                     cargaCompletada = true
@@ -42,7 +46,14 @@ class ListaViewModel(
                     _estado.value = UiState.Exito(itemRepository.items.first())
                 }
                 .onFailure { error ->
-                    _estado.value = UiState.Error(mensajeDe(error))
+                    val guardados = itemRepository.cantidadGuardada()
+                    if (error is IOException && guardados > 0) {
+                        cargaCompletada = true
+                        _aviso.value = "Sin conexión: mostrando datos guardados"
+                        _estado.value = UiState.Exito(itemRepository.items.first())
+                    } else {
+                        _estado.value = UiState.Error(mensajeDe(error))
+                    }
                 }
         }
     }
