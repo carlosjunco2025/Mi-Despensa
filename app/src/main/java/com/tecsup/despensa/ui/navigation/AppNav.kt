@@ -1,16 +1,21 @@
 package com.tecsup.despensa.ui.navigation
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.tecsup.despensa.AppContainer
+import com.tecsup.despensa.ui.ViewModelFactory
 import com.tecsup.despensa.ui.admin.AdminScreen
 import com.tecsup.despensa.ui.detalle.DetalleScreen
 import com.tecsup.despensa.ui.favoritos.FavoritosScreen
 import com.tecsup.despensa.ui.lista.ListaScreen
+import com.tecsup.despensa.ui.lista.ListaViewModel
 import com.tecsup.despensa.ui.login.LoginScreen
 
 object Rutas {
@@ -24,8 +29,12 @@ object Rutas {
 }
 
 @Composable
-fun AppNav(modifier: Modifier = Modifier) {
+fun AppNav(
+    container: AppContainer,
+    modifier: Modifier = Modifier
+) {
     val navController = rememberNavController()
+    val viewModelFactory = remember(container) { ViewModelFactory(container) }
 
     NavHost(
         navController = navController,
@@ -33,7 +42,8 @@ fun AppNav(modifier: Modifier = Modifier) {
         modifier = modifier
     ) {
         composable(Rutas.LISTA) {
-            ListaScreen()
+            val listaViewModel: ListaViewModel = viewModel(factory = viewModelFactory)
+            ListaScreen(viewModel = listaViewModel)
         }
 
         composable(Rutas.LOGIN) {
