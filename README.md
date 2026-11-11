@@ -42,8 +42,11 @@ notificación local.
    cd Mi-Despensa
    ```
 
-2. Colocar el archivo **`google-services.json`** real dentro de la carpeta `app/`
-   (ver sección 2). El archivo está en `.gitignore`: **nunca debe subirse al repositorio**.
+2. (Opcional para compilar) Colocar el archivo **`google-services.json`** real dentro
+   de la carpeta `app/` (ver sección 2). El archivo está en `.gitignore`: **nunca debe
+   subirse al repositorio**. Si no está, el proyecto **igual compila**: la app arranca
+   con un login local de prueba (cualquier correo; los que empiezan con `admin` entran
+   como administrador).
 
 3. Compilar el APK de depuración:
 
@@ -61,8 +64,8 @@ notificación local.
    También se puede ejecutar desde Android Studio con **Run ▶**.
 
 > Si aparece `Default FirebaseApp is not initialized`, revisar que
-> `google-services.json` esté en `app/`, que el plugin `com.google.gms.google-services`
-> esté aplicado, y hacer **Sync Project with Gradle Files** + **Clean** + **Rebuild**.
+> `google-services.json` esté en `app/` y hacer **Sync Project with Gradle Files** +
+> **Clean** + **Rebuild**. Sin ese archivo la app funciona en modo local, sin Firebase.
 
 ---
 

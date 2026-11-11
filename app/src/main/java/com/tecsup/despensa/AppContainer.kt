@@ -2,9 +2,9 @@ package com.tecsup.despensa
 
 import android.app.Application
 import android.content.Context
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.FirebaseApp
 import com.tecsup.despensa.data.auth.AuthRepository
+import com.tecsup.despensa.data.auth.AuthRepositoryLocal
 import com.tecsup.despensa.data.auth.FirebaseAuthRepository
 import com.tecsup.despensa.data.local.AppDatabase
 import com.tecsup.despensa.data.local.ItemDao
@@ -23,11 +23,17 @@ class AppContainer(context: Context) {
     val database: AppDatabase = AppDatabase.obtener(appContext)
     val itemDao: ItemDao = database.itemDao()
     val notificador: Notificador = NotificadorAndroid(appContext)
-    val authRepository: AuthRepository = FirebaseAuthRepository(
-        auth = FirebaseAuth.getInstance(),
-        firestore = FirebaseFirestore.getInstance()
-    )
+    val authRepository: AuthRepository =
+        if (firebaseConfigurado()) FirebaseAuthRepository() else AuthRepositoryLocal()
     val itemRepository: ItemRepository = ItemRepositoryImpl(dao = itemDao)
+
+    /**
+     * Firebase queda activo solo si google-services.json genero la configuracion.
+     * Sin ese archivo (no se versiona por seguridad) la app usa el login local
+     * para poder compilar y navegar.
+     */
+    private fun firebaseConfigurado(): Boolean =
+        runCatching { FirebaseApp.getApps(appContext).isNotEmpty() }.getOrDefault(false)
 }
 
 /**

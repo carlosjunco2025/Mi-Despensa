@@ -3,7 +3,15 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
-    id("com.google.gms.google-services")
+    // Se aplica mas abajo, solo si existe app/google-services.json.
+    id("com.google.gms.google-services") apply false
+}
+
+// google-services.json no se versiona porque contiene claves del proyecto.
+// Sin ese archivo el build debe seguir funcionando: la app arranca en modo
+// local (ver AppContainer) en lugar de fallar en :app:processDebugGoogleServices.
+if (file("google-services.json").exists()) {
+    apply(plugin = "com.google.gms.google-services")
 }
 
 android {
