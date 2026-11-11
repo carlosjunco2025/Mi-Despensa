@@ -30,6 +30,7 @@ import com.tecsup.despensa.ui.components.ErrorView
 import com.tecsup.despensa.ui.detalle.DetalleScreen
 import com.tecsup.despensa.ui.detalle.DetalleViewModel
 import com.tecsup.despensa.ui.favoritos.FavoritosScreen
+import com.tecsup.despensa.ui.favoritos.FavoritosViewModel
 import com.tecsup.despensa.ui.lista.ListaScreen
 import com.tecsup.despensa.ui.lista.ListaViewModel
 import com.tecsup.despensa.ui.login.LoginScreen
@@ -144,7 +145,12 @@ fun AppNav(
                     }
 
                     composable(Rutas.FAVORITOS) {
-                        FavoritosScreen()
+                        val favoritosViewModel: FavoritosViewModel =
+                            viewModel(factory = viewModelFactory)
+                        FavoritosScreen(
+                            viewModel = favoritosViewModel,
+                            onItemClick = { id -> navController.navigate(Rutas.detalle(id)) }
+                        )
                     }
 
                     composable(Rutas.ADMIN) {
