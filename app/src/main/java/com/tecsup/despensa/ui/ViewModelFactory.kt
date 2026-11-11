@@ -22,7 +22,11 @@ class ViewModelFactory(
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(ListaViewModel::class.java) ->
-                ListaViewModel(container.itemRepository, container.notificador) as T
+                ListaViewModel(
+                    container.itemRepository,
+                    container.productosRepository,
+                    container.notificador
+                ) as T
 
             modelClass.isAssignableFrom(LoginViewModel::class.java) ->
                 LoginViewModel(container.authRepository) as T
@@ -37,7 +41,11 @@ class ViewModelFactory(
                 FavoritosViewModel(container.itemRepository) as T
 
             modelClass.isAssignableFrom(AdminViewModel::class.java) ->
-                AdminViewModel(container.itemRepository, container.notificador) as T
+                AdminViewModel(
+                    container.itemRepository,
+                    container.productosRepository,
+                    container.notificador
+                ) as T
 
             else -> throw IllegalArgumentException("ViewModel no soportado: ${modelClass.name}")
         }

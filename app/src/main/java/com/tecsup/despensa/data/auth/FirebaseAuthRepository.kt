@@ -2,7 +2,10 @@ package com.tecsup.despensa.data.auth
 
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.UserProfileChangeRequest
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.SetOptions
 import com.tecsup.despensa.domain.model.Rol
 import com.tecsup.despensa.domain.model.Sesion
 import kotlinx.coroutines.CancellationException
@@ -29,6 +32,56 @@ class FirebaseAuthRepository(
         Result.failure(e)
     }
 
+    override suspend fun registrar(
+        nombre: String,
+        correo: String,
+        clave: String
+    ): Result<Sesion> = try {
+        val resultado = auth.createUserWithEmailAndPassword(correo.trim(), clave).await()
+        val usuario = resultado.user
+            ?: return Result.failure(IllegalStateException("No se pudo crear la cuenta"))
+
+        val perfil = UserProfileChangeRequest.Builder()
+            .setDisplayName(nombre.trim())
+            .build()
+        usuario.updateProfile(perfil).await()
+
+        firestore.collection("usuarios")
+            .document(usuario.uid)
+            .set(
+                mapOf("rol" to "usuario", "nombre" to nombre.trim()),
+                SetOptions.merge()
+            )
+            .await()
+
+        Result.success(
+            Sesion(
+                uid = usuario.uid,
+                correo = usuario.email ?: correo.trim(),
+                rol = Rol.USUARIO,
+                nombre = nombre.trim()
+            )
+        )
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        auth.signOut()
+        Result.failure(e)
+    }
+
+    override suspend fun iniciarConGoogle(idToken: String): Result<Sesion> = try {
+        val credencial = GoogleAuthProvider.getCredential(idToken, null)
+        val resultado = auth.signInWithCredential(credencial).await()
+        val usuario = resultado.user
+            ?: return Result.failure(IllegalStateException("No se pudo iniciar con Google"))
+        Result.success(construirSesion(usuario))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        auth.signOut()
+        Result.failure(e)
+    }
+
     override suspend fun sesionActual(): Sesion? = try {
         auth.currentUser?.let { usuario -> construirSesion(usuario) }
     } catch (e: CancellationException) {
@@ -42,10 +95,18 @@ class FirebaseAuthRepository(
     }
 
     private suspend fun construirSesion(usuario: FirebaseUser): Sesion {
-        val documento = firestore.collection("usuarios")
-            .document(usuario.uid)
-            .get()
-            .await()
+        val referencia = firestore.collection("usuarios").document(usuario.uid)
+        val documento = referencia.get().await()
+
+        if (!documento.exists()) {
+            // Cuenta creada con Google: se registra el perfil base como usuario.
+            referencia.set(
+                mapOf(
+                    "rol" to "usuario",
+                    "nombre" to (usuario.displayName ?: usuario.email ?: "Usuario")
+                )
+            ).await()
+        }
 
         // Se acepta "admin", "Admin" o "ADMIN": el valor se escribe a mano en Firestore.
         val rol = if (documento.getString("rol")?.trim()?.lowercase() == "admin") {
@@ -53,10 +114,16 @@ class FirebaseAuthRepository(
         } else {
             Rol.USUARIO
         }
+        val nombre = documento.getString("nombre")
+            ?: usuario.displayName
+            ?: usuario.email?.substringBefore("@")
+            ?: ""
+
         return Sesion(
             uid = usuario.uid,
             correo = usuario.email ?: "",
-            rol = rol
+            rol = rol,
+            nombre = nombre
         )
     }
 }

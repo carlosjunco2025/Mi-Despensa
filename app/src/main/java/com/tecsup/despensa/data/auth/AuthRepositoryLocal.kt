@@ -15,8 +15,28 @@ class AuthRepositoryLocal : AuthRepository {
     private var sesion: Sesion? = null
 
     override suspend fun iniciarSesion(correo: String, clave: String): Result<Sesion> {
-        val rol = if (correo.trim().lowercase().startsWith("admin")) Rol.ADMIN else Rol.USUARIO
-        val nueva = Sesion(uid = "local-uid", correo = correo.trim(), rol = rol)
+        val nueva = crearSesion(correo, nombre = correo.substringBefore("@"))
+        sesion = nueva
+        return Result.success(nueva)
+    }
+
+    override suspend fun registrar(
+        nombre: String,
+        correo: String,
+        clave: String
+    ): Result<Sesion> {
+        val nueva = crearSesion(correo, nombre)
+        sesion = nueva
+        return Result.success(nueva)
+    }
+
+    override suspend fun iniciarConGoogle(idToken: String): Result<Sesion> {
+        val nueva = Sesion(
+            uid = "local-google",
+            correo = "invitado@gmail.com",
+            rol = Rol.USUARIO,
+            nombre = "Invitado"
+        )
         sesion = nueva
         return Result.success(nueva)
     }
@@ -25,5 +45,16 @@ class AuthRepositoryLocal : AuthRepository {
 
     override fun cerrarSesion() {
         sesion = null
+    }
+
+    private fun crearSesion(correo: String, nombre: String): Sesion {
+        val limpio = correo.trim()
+        val rol = if (limpio.lowercase().startsWith("admin")) Rol.ADMIN else Rol.USUARIO
+        return Sesion(
+            uid = "local-${limpio.hashCode()}",
+            correo = limpio,
+            rol = rol,
+            nombre = nombre.trim().ifBlank { limpio.substringBefore("@") }
+        )
     }
 }

@@ -1,11 +1,22 @@
 package com.tecsup.despensa.ui.navigation
 
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.Favorite
@@ -19,14 +30,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,7 +52,6 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.tecsup.despensa.AppContainer
-import com.tecsup.despensa.domain.model.Rol
 import com.tecsup.despensa.domain.model.Sesion
 import com.tecsup.despensa.ui.UiState
 import com.tecsup.despensa.ui.ViewModelFactory
@@ -106,7 +120,7 @@ private fun ContenidoSesion(
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rutaActual = backStackEntry?.destination?.route
 
-    val esAdmin = sesion?.rol == Rol.ADMIN
+    val esAdmin = sesion?.esAdmin == true
 
     if (sesion != null) {
         PedirPermisoNotificaciones()
@@ -126,22 +140,50 @@ private fun ContenidoSesion(
         }
     }
 
+    fun salir() {
+        sesionViewModel.cerrarSesion()
+        navController.navigate(Rutas.LOGIN) {
+            popUpTo(navController.graph.startDestinationId) { inclusive = true }
+            launchSingleTop = true
+        }
+    }
+
     Scaffold(
         modifier = modifier,
         topBar = {
-            if (mostrarBarras) {
+            val sesionVisible = if (mostrarBarras) sesion else null
+            if (sesionVisible != null) {
                 TopAppBar(
-                    title = { Text(tituloDe(rutaActual)) },
-                    actions = {
-                        IconButton(
-                            onClick = {
-                                sesionViewModel.cerrarSesion()
-                                navController.navigate(Rutas.LOGIN) {
-                                    popUpTo(Rutas.LISTA) { inclusive = true }
-                                    launchSingleTop = true
-                                }
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                    ),
+                    title = {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            AvatarSesion(sesion = sesionVisible)
+                            Spacer(modifier = Modifier.width(10.dp))
+                            Column {
+                                Text(
+                                    text = saludoDe(rutaActual, sesionVisible),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
+                                Text(
+                                    text = subtituloDe(rutaActual, sesionVisible),
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(
+                                        alpha = 0.75f
+                                    ),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis
+                                )
                             }
-                        ) {
+                        }
+                    },
+                    actions = {
+                        IconButton(onClick = { salir() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                 contentDescription = "Cerrar sesión"
@@ -196,7 +238,15 @@ private fun ContenidoSesion(
         NavHost(
             navController = navController,
             startDestination = inicio,
-            modifier = Modifier.padding(padding)
+            modifier = Modifier.padding(padding),
+            enterTransition = {
+                fadeIn(tween(220)) + slideInHorizontally(tween(220)) { ancho -> ancho / 12 }
+            },
+            exitTransition = { fadeOut(tween(160)) },
+            popEnterTransition = { fadeIn(tween(220)) },
+            popExitTransition = {
+                fadeOut(tween(160)) + slideOutHorizontally(tween(160)) { ancho -> ancho / 12 }
+            }
         ) {
             composable(Rutas.LISTA) {
                 val listaViewModel: ListaViewModel = viewModel(factory = viewModelFactory)
@@ -259,10 +309,42 @@ private fun ContenidoSesion(
     }
 }
 
-private fun tituloDe(ruta: String?): String = when (ruta) {
-    Rutas.FAVORITOS -> "Mi lista de compras"
-    Rutas.ADMIN -> "Panel Admin"
-    else -> "Despensa"
+@Composable
+private fun AvatarSesion(sesion: Sesion) {
+    Surface(
+        shape = CircleShape,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier.size(38.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = sesion.inicial,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
+        }
+    }
+}
+
+private fun saludoDe(ruta: String?, sesion: Sesion): String {
+    val nombre = sesion.nombre.trim().substringBefore(" ").ifBlank { "vecino" }
+    return when (ruta) {
+        Rutas.FAVORITOS -> "Mi lista de compras"
+        Rutas.ADMIN -> "Panel de administración"
+        else -> "Hola, $nombre"
+    }
+}
+
+private fun subtituloDe(ruta: String?, sesion: Sesion): String = when (ruta) {
+    Rutas.FAVORITOS -> "Lo que planeas comprar"
+    Rutas.ADMIN -> sesion.correo
+    else -> "Tu despensa, siempre lista"
 }
 
 @Composable

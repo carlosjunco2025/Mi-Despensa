@@ -10,6 +10,9 @@ import com.tecsup.despensa.data.local.AppDatabase
 import com.tecsup.despensa.data.local.ItemDao
 import com.tecsup.despensa.data.repository.ItemRepository
 import com.tecsup.despensa.data.repository.ItemRepositoryImpl
+import com.tecsup.despensa.data.repository.ProductosRepository
+import com.tecsup.despensa.data.repository.ProductosRepositoryFirestore
+import com.tecsup.despensa.data.repository.ProductosRepositoryLocal
 import com.tecsup.despensa.notification.Notificador
 import com.tecsup.despensa.notification.NotificadorAndroid
 
@@ -19,21 +22,27 @@ import com.tecsup.despensa.notification.NotificadorAndroid
  */
 class AppContainer(context: Context) {
     private val appContext = context.applicationContext
+    private val firebaseListo: Boolean = firebaseConfigurado(appContext)
 
     val database: AppDatabase = AppDatabase.obtener(appContext)
     val itemDao: ItemDao = database.itemDao()
     val notificador: Notificador = NotificadorAndroid(appContext)
+
     val authRepository: AuthRepository =
-        if (firebaseConfigurado()) FirebaseAuthRepository() else AuthRepositoryLocal()
+        if (firebaseListo) FirebaseAuthRepository() else AuthRepositoryLocal()
+
+    val productosRepository: ProductosRepository =
+        if (firebaseListo) ProductosRepositoryFirestore() else ProductosRepositoryLocal()
+
     val itemRepository: ItemRepository = ItemRepositoryImpl(dao = itemDao)
 
     /**
      * Firebase queda activo solo si google-services.json genero la configuracion.
-     * Sin ese archivo (no se versiona por seguridad) la app usa el login local
-     * para poder compilar y navegar.
+     * Sin ese archivo (no se versiona por seguridad) la app usa las versiones
+     * locales de los repositorios para poder compilar y navegar.
      */
-    private fun firebaseConfigurado(): Boolean =
-        runCatching { FirebaseApp.getApps(appContext).isNotEmpty() }.getOrDefault(false)
+    private fun firebaseConfigurado(context: Context): Boolean =
+        runCatching { FirebaseApp.getApps(context).isNotEmpty() }.getOrDefault(false)
 }
 
 /**

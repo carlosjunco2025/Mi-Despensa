@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Despensa</string>
+
+    <!--
+      ID de cliente web (OAuth) del proyecto de Firebase.
+      Se obtiene en: Firebase Console -> Authentication -> Sign-in method -> Google
+      (seccion "Web SDK configuration"). Si queda vacio, el boton de Google no se
+      muestra y el inicio de sesion con correo sigue funcionando normal.
+    -->
+    <string name="google_web_client_id" translatable="false"></string>
 </resources>
