@@ -47,7 +47,12 @@ class FirebaseAuthRepository(
             .get()
             .await()
 
-        val rol = if (documento.getString("rol") == "admin") Rol.ADMIN else Rol.USUARIO
+        // Se acepta "admin", "Admin" o "ADMIN": el valor se escribe a mano en Firestore.
+        val rol = if (documento.getString("rol")?.trim()?.lowercase() == "admin") {
+            Rol.ADMIN
+        } else {
+            Rol.USUARIO
+        }
         return Sesion(
             uid = usuario.uid,
             correo = usuario.email ?: "",
