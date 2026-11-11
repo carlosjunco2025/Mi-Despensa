@@ -2,7 +2,9 @@ package com.tecsup.despensa.ui.admin
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.tecsup.despensa.data.auth.AuthRepository
 import com.tecsup.despensa.data.repository.ItemRepository
+import com.tecsup.despensa.domain.model.Sesion
 import com.tecsup.despensa.notification.Notificador
 import com.tecsup.despensa.ui.UiState
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,16 +17,18 @@ import java.io.IOException
 
 data class ResumenAdmin(
     val totalGuardado: Int,
-    val totalFavoritos: Int
+    val totalFavoritos: Int,
+    val costoTotalFavoritos: Double,
+    val sesion: Sesion?
 )
 
 /**
- * Panel de administracion. Los totales salen de Room, por eso se actualizan
- * solos al sincronizar o al limpiar el cache. La notificacion se pide a traves
- * de la interface Notificador, nunca desde la pantalla.
+ * Panel de administracion. Los totales salen de Room y el costo de favoritos se calcula en tiempo real.
+ * La notificacion se pide a traves de la interface Notificador.
  */
 class AdminViewModel(
     private val itemRepository: ItemRepository,
+    private val authRepository: AuthRepository,
     private val notificador: Notificador
 ) : ViewModel() {
 
@@ -39,13 +43,17 @@ class AdminViewModel(
 
     init {
         viewModelScope.launch {
+            val sesionActual = authRepository.sesionActual()
             combine(
                 itemRepository.items,
                 itemRepository.favoritos
             ) { items, favoritos ->
+                val costoTotal = favoritos.sumOf { it.precio }
                 ResumenAdmin(
                     totalGuardado = items.size,
-                    totalFavoritos = favoritos.size
+                    totalFavoritos = favoritos.size,
+                    costoTotalFavoritos = costoTotal,
+                    sesion = sesionActual
                 )
             }.collect { resumen ->
                 _estado.value = UiState.Exito(resumen)
@@ -81,6 +89,14 @@ class AdminViewModel(
             itemRepository.limpiarCache()
             _mensaje.value = "Caché eliminada: la lista quedó vacía"
         }
+    }
+
+    fun probarNotificacion() {
+        notificador.mostrar(
+            "Prueba de Notificación",
+            "Notificación local enviada correctamente desde el panel Admin."
+        )
+        _mensaje.value = "Notificación local enviada"
     }
 
     fun consumirMensaje() {

@@ -8,5 +8,6 @@ enum class Rol {
 data class Sesion(
     val uid: String,
     val correo: String,
+    val nombre: String = "",
     val rol: Rol
 )

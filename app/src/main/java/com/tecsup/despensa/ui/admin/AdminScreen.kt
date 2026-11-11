@@ -14,9 +14,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -32,6 +35,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.tecsup.despensa.ui.UiState
 import com.tecsup.despensa.ui.components.Cargando
 import com.tecsup.despensa.ui.components.ErrorView
+import java.util.Locale
 
 @Composable
 fun AdminScreen(
@@ -54,35 +58,104 @@ fun AdminScreen(
         )
 
         is UiState.Exito -> {
+            val resumen = actual.datos
+            val sesion = resumen.sesion
+
             Column(
                 modifier = modifier
                     .fillMaxSize()
                     .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
+                // 1. Tarjeta de Perfil del Admin
+                ElevatedCard(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.elevatedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Perfil de Administrador",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Surface(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = MaterialTheme.shapes.small
+                            ) {
+                                Text(
+                                    text = "ADMINISTRADOR",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onPrimary,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Nombre: ${sesion?.nombre.takeIf { !it.isNullOrBlank() } ?: "Administrador"}",
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Correo: ${sesion?.correo ?: "admin@despensa.com"}",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "UID: ${sesion?.uid ?: "N/A"}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                    }
+                }
+
+                // 2. Dashboard de Métricas (3 Tarjetas)
                 Text(
-                    text = "Panel de administración",
-                    style = MaterialTheme.typography.headlineSmall
+                    text = "Dashboard de Métricas",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
-                Spacer(modifier = Modifier.height(16.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    TarjetaTotal(
-                        titulo = "Total guardado",
-                        valor = actual.datos.totalGuardado,
+                    TarjetaMetrica(
+                        titulo = "Total Guardado",
+                        valor = resumen.totalGuardado.toString(),
                         modifier = Modifier.weight(1f)
                     )
-                    TarjetaTotal(
-                        titulo = "Total de favoritos",
-                        valor = actual.datos.totalFavoritos,
+                    TarjetaMetrica(
+                        titulo = "Lista de Compras",
+                        valor = resumen.totalFavoritos.toString(),
+                        modifier = Modifier.weight(1f)
+                    )
+                    TarjetaMetrica(
+                        titulo = "Costo Favoritos",
+                        valor = String.format(Locale.US, "$%.2f", resumen.costoTotalFavoritos),
                         modifier = Modifier.weight(1f)
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                // 3. Sección de Acciones Avanzadas
+                Text(
+                    text = "Acciones del Sistema",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(top = 8.dp)
+                )
 
                 Button(
                     onClick = viewModel::sincronizar,
@@ -98,23 +171,33 @@ fun AdminScreen(
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
-                        Text("Sincronizar")
+                        Text("Sincronizar Datos")
                     }
                 }
 
-                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedButton(
+                    onClick = viewModel::probarNotificacion,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                ) {
+                    Text("Probar Notificación Local")
+                }
 
                 OutlinedButton(
                     onClick = { confirmarLimpieza = true },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(48.dp)
+                        .height(48.dp),
+                    colors = androidx.compose.material3.ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.error
+                    )
                 ) {
-                    Text("Limpiar caché")
+                    Text("Limpiar Caché")
                 }
 
                 mensaje?.let { texto ->
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = texto,
                         style = MaterialTheme.typography.bodyMedium,
@@ -133,8 +216,8 @@ fun AdminScreen(
             title = { Text("Limpiar caché") },
             text = {
                 Text(
-                    "Se borrarán los productos guardados y la lista quedará vacía. " +
-                        "Puedes volver a sincronizar para recuperarlos. ¿Continuar?"
+                    "Se borrarán todos los productos guardados en la base de datos local " +
+                        "y la lista quedará vacía. Puedes volver a sincronizar para recuperarlos. ¿Continuar?"
                 )
             },
             confirmButton = {
@@ -144,7 +227,7 @@ fun AdminScreen(
                         confirmarLimpieza = false
                     }
                 ) {
-                    Text("Limpiar")
+                    Text("Limpiar", color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
@@ -157,29 +240,38 @@ fun AdminScreen(
 }
 
 @Composable
-private fun TarjetaTotal(
+private fun TarjetaMetrica(
     titulo: String,
-    valor: Int,
+    valor: String,
     modifier: Modifier = Modifier
 ) {
-    Card(modifier = modifier) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(12.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text = valor.toString(),
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.primary
+                text = valor,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.primary,
+                textAlign = TextAlign.Center,
+                maxLines = 1
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = titulo,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
+                maxLines = 2
             )
         }
     }

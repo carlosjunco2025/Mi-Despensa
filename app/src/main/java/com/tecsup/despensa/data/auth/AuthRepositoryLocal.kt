@@ -16,7 +16,15 @@ class AuthRepositoryLocal : AuthRepository {
 
     override suspend fun iniciarSesion(correo: String, clave: String): Result<Sesion> {
         val rol = if (correo.trim().lowercase().startsWith("admin")) Rol.ADMIN else Rol.USUARIO
-        val nueva = Sesion(uid = "local-uid", correo = correo.trim(), rol = rol)
+        val nombre = if (rol == Rol.ADMIN) "Administrador Local" else "Usuario Local"
+        val nueva = Sesion(uid = "local-uid", correo = correo.trim(), nombre = nombre, rol = rol)
+        sesion = nueva
+        return Result.success(nueva)
+    }
+
+    override suspend fun registrarUsuario(nombre: String, correo: String, clave: String): Result<Sesion> {
+        val rol = if (correo.trim().lowercase().startsWith("admin")) Rol.ADMIN else Rol.USUARIO
+        val nueva = Sesion(uid = "local-uid-${System.currentTimeMillis()}", correo = correo.trim(), nombre = nombre.trim(), rol = rol)
         sesion = nueva
         return Result.success(nueva)
     }

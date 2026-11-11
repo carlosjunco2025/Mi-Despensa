@@ -8,6 +8,7 @@ import com.tecsup.despensa.ui.detalle.DetalleViewModel
 import com.tecsup.despensa.ui.favoritos.FavoritosViewModel
 import com.tecsup.despensa.ui.lista.ListaViewModel
 import com.tecsup.despensa.ui.login.LoginViewModel
+import com.tecsup.despensa.ui.login.RegistroViewModel
 import com.tecsup.despensa.ui.sesion.SesionViewModel
 
 /**
@@ -27,6 +28,9 @@ class ViewModelFactory(
             modelClass.isAssignableFrom(LoginViewModel::class.java) ->
                 LoginViewModel(container.authRepository) as T
 
+            modelClass.isAssignableFrom(RegistroViewModel::class.java) ->
+                RegistroViewModel(container.authRepository) as T
+
             modelClass.isAssignableFrom(SesionViewModel::class.java) ->
                 SesionViewModel(container.authRepository) as T
 
@@ -37,7 +41,7 @@ class ViewModelFactory(
                 FavoritosViewModel(container.itemRepository) as T
 
             modelClass.isAssignableFrom(AdminViewModel::class.java) ->
-                AdminViewModel(container.itemRepository, container.notificador) as T
+                AdminViewModel(container.itemRepository, container.authRepository, container.notificador) as T
 
             else -> throw IllegalArgumentException("ViewModel no soportado: ${modelClass.name}")
         }

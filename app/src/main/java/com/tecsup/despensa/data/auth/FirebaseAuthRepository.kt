@@ -29,6 +29,30 @@ class FirebaseAuthRepository(
         Result.failure(e)
     }
 
+    override suspend fun registrarUsuario(nombre: String, correo: String, clave: String): Result<Sesion> = try {
+        val resultado = auth.createUserWithEmailAndPassword(correo.trim(), clave).await()
+        val usuario = resultado.user
+            ?: return Result.failure(IllegalStateException("No se pudo obtener el usuario registrado"))
+
+        val datosUsuario = mapOf(
+            "nombre" to nombre.trim(),
+            "correo" to correo.trim(),
+            "rol" to "usuario"
+        )
+
+        firestore.collection("usuarios")
+            .document(usuario.uid)
+            .set(datosUsuario)
+            .await()
+
+        Result.success(construirSesion(usuario))
+    } catch (e: CancellationException) {
+        throw e
+    } catch (e: Exception) {
+        auth.signOut()
+        Result.failure(e)
+    }
+
     override suspend fun sesionActual(): Sesion? = try {
         auth.currentUser?.let { usuario -> construirSesion(usuario) }
     } catch (e: CancellationException) {
@@ -47,6 +71,11 @@ class FirebaseAuthRepository(
             .get()
             .await()
 
+        val nombre = documento.getString("nombre")
+            ?: usuario.displayName
+            ?: usuario.email?.substringBefore("@")
+            ?: "Usuario"
+
         // Se acepta "admin", "Admin" o "ADMIN": el valor se escribe a mano en Firestore.
         val rol = if (documento.getString("rol")?.trim()?.lowercase() == "admin") {
             Rol.ADMIN
@@ -56,6 +85,7 @@ class FirebaseAuthRepository(
         return Sesion(
             uid = usuario.uid,
             correo = usuario.email ?: "",
+            nombre = nombre,
             rol = rol
         )
     }

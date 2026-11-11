@@ -17,6 +17,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -38,6 +39,7 @@ import com.tecsup.despensa.ui.UiState
 fun LoginScreen(
     viewModel: LoginViewModel,
     onLoginExitoso: (Sesion) -> Unit,
+    onIrARegistro: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -141,6 +143,15 @@ fun LoginScreen(
             } else {
                 Text("Ingresar")
             }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        TextButton(
+            onClick = onIrARegistro,
+            enabled = !cargando
+        ) {
+            Text("¿No tienes cuenta? Regístrate aquí")
         }
     }
 }

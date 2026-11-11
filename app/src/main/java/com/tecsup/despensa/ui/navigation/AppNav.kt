@@ -54,11 +54,14 @@ import com.tecsup.despensa.ui.lista.ListaScreen
 import com.tecsup.despensa.ui.lista.ListaViewModel
 import com.tecsup.despensa.ui.login.LoginScreen
 import com.tecsup.despensa.ui.login.LoginViewModel
+import com.tecsup.despensa.ui.login.RegistroScreen
+import com.tecsup.despensa.ui.login.RegistroViewModel
 import com.tecsup.despensa.ui.sesion.SesionViewModel
 
 object Rutas {
     const val LISTA = "lista"
     const val LOGIN = "login"
+    const val REGISTRO = "registro"
     const val DETALLE = "detalle/{id}"
     const val FAVORITOS = "favoritos"
     const val ADMIN = "admin"
@@ -216,6 +219,26 @@ private fun ContenidoSesion(
                             popUpTo(Rutas.LOGIN) { inclusive = true }
                             launchSingleTop = true
                         }
+                    },
+                    onIrARegistro = {
+                        navController.navigate(Rutas.REGISTRO)
+                    }
+                )
+            }
+
+            composable(Rutas.REGISTRO) {
+                val registroViewModel: RegistroViewModel = viewModel(factory = viewModelFactory)
+                RegistroScreen(
+                    viewModel = registroViewModel,
+                    onRegistroExitoso = { sesionIniciada ->
+                        sesionViewModel.establecerSesion(sesionIniciada)
+                        navController.navigate(Rutas.LISTA) {
+                            popUpTo(Rutas.LOGIN) { inclusive = true }
+                            launchSingleTop = true
+                        }
+                    },
+                    onVolverLogin = {
+                        navController.popBackStack()
                     }
                 )
             }
