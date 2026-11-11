@@ -2,6 +2,8 @@ package com.tecsup.despensa
 
 import android.app.Application
 import android.content.Context
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import com.tecsup.despensa.data.auth.AuthRepository
 import com.tecsup.despensa.data.auth.FirebaseAuthRepository
 import com.tecsup.despensa.data.local.AppDatabase
@@ -21,7 +23,10 @@ class AppContainer(context: Context) {
     val database: AppDatabase = AppDatabase.obtener(appContext)
     val itemDao: ItemDao = database.itemDao()
     val notificador: Notificador = NotificadorAndroid(appContext)
-    val authRepository: AuthRepository = FirebaseAuthRepository()
+    val authRepository: AuthRepository = FirebaseAuthRepository(
+        auth = FirebaseAuth.getInstance(),
+        firestore = FirebaseFirestore.getInstance()
+    )
     val itemRepository: ItemRepository = ItemRepositoryImpl(dao = itemDao)
 }
 
