@@ -45,6 +45,7 @@ import com.tecsup.despensa.ui.admin.AdminScreen
 import com.tecsup.despensa.ui.admin.AdminViewModel
 import com.tecsup.despensa.ui.components.Cargando
 import com.tecsup.despensa.ui.components.ErrorView
+import com.tecsup.despensa.ui.components.PedirPermisoNotificaciones
 import com.tecsup.despensa.ui.detalle.DetalleScreen
 import com.tecsup.despensa.ui.detalle.DetalleViewModel
 import com.tecsup.despensa.ui.favoritos.FavoritosScreen
@@ -106,6 +107,11 @@ private fun ContenidoSesion(
     val rutaActual = backStackEntry?.destination?.route
 
     val esAdmin = sesion?.rol == Rol.ADMIN
+
+    if (sesion != null) {
+        PedirPermisoNotificaciones()
+    }
+
     val mostrarBarras = sesion != null && rutaActual in setOf(
         Rutas.LISTA,
         Rutas.FAVORITOS,
