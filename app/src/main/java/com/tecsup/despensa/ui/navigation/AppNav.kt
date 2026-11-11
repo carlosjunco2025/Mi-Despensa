@@ -42,6 +42,7 @@ import com.tecsup.despensa.domain.model.Sesion
 import com.tecsup.despensa.ui.UiState
 import com.tecsup.despensa.ui.ViewModelFactory
 import com.tecsup.despensa.ui.admin.AdminScreen
+import com.tecsup.despensa.ui.admin.AdminViewModel
 import com.tecsup.despensa.ui.components.Cargando
 import com.tecsup.despensa.ui.components.ErrorView
 import com.tecsup.despensa.ui.detalle.DetalleScreen
@@ -236,7 +237,8 @@ private fun ContenidoSesion(
 
             composable(Rutas.ADMIN) {
                 if (esAdmin) {
-                    AdminScreen()
+                    val adminViewModel: AdminViewModel = viewModel(factory = viewModelFactory)
+                    AdminScreen(viewModel = adminViewModel)
                 } else {
                     AccesoDenegado(
                         onVolver = {

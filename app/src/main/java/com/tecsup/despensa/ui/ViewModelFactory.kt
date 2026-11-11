@@ -3,6 +3,7 @@ package com.tecsup.despensa.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tecsup.despensa.AppContainer
+import com.tecsup.despensa.ui.admin.AdminViewModel
 import com.tecsup.despensa.ui.detalle.DetalleViewModel
 import com.tecsup.despensa.ui.favoritos.FavoritosViewModel
 import com.tecsup.despensa.ui.lista.ListaViewModel
@@ -34,6 +35,9 @@ class ViewModelFactory(
 
             modelClass.isAssignableFrom(FavoritosViewModel::class.java) ->
                 FavoritosViewModel(container.itemRepository) as T
+
+            modelClass.isAssignableFrom(AdminViewModel::class.java) ->
+                AdminViewModel(container.itemRepository, container.notificador) as T
 
             else -> throw IllegalArgumentException("ViewModel no soportado: ${modelClass.name}")
         }
