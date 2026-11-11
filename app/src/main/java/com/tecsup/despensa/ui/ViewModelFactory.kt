@@ -3,6 +3,7 @@ package com.tecsup.despensa.ui
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tecsup.despensa.AppContainer
+import com.tecsup.despensa.ui.detalle.DetalleViewModel
 import com.tecsup.despensa.ui.lista.ListaViewModel
 import com.tecsup.despensa.ui.login.LoginViewModel
 import com.tecsup.despensa.ui.sesion.SesionViewModel
@@ -26,6 +27,9 @@ class ViewModelFactory(
 
             modelClass.isAssignableFrom(SesionViewModel::class.java) ->
                 SesionViewModel(container.authRepository) as T
+
+            modelClass.isAssignableFrom(DetalleViewModel::class.java) ->
+                DetalleViewModel(container.itemRepository) as T
 
             else -> throw IllegalArgumentException("ViewModel no soportado: ${modelClass.name}")
         }

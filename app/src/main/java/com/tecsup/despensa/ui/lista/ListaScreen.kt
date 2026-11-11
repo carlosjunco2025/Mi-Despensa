@@ -1,5 +1,6 @@
 package com.tecsup.despensa.ui.lista
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,6 +42,7 @@ import com.tecsup.despensa.ui.components.ErrorView
 @Composable
 fun ListaScreen(
     viewModel: ListaViewModel,
+    onItemClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val estado by viewModel.estado.collectAsStateWithLifecycle()
@@ -70,6 +72,7 @@ fun ListaScreen(
                     } else {
                         ListaProductos(
                             items = actual.datos,
+                            onItemClick = onItemClick,
                             modifier = Modifier.fillMaxSize()
                         )
                     }
@@ -97,6 +100,7 @@ private fun AvisoBanner(texto: String) {
 @Composable
 private fun ListaProductos(
     items: List<Item>,
+    onItemClick: (Int) -> Unit,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -108,14 +112,18 @@ private fun ListaProductos(
             items = items,
             key = { item -> item.id }
         ) { item ->
-            ItemCard(item = item)
+            ItemCard(item = item, onClick = { onItemClick(item.id) })
         }
     }
 }
 
 @Composable
-private fun ItemCard(item: Item) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+private fun ItemCard(item: Item, onClick: () -> Unit) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+    ) {
         Row(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically

@@ -28,6 +28,7 @@ import com.tecsup.despensa.ui.admin.AdminScreen
 import com.tecsup.despensa.ui.components.Cargando
 import com.tecsup.despensa.ui.components.ErrorView
 import com.tecsup.despensa.ui.detalle.DetalleScreen
+import com.tecsup.despensa.ui.detalle.DetalleViewModel
 import com.tecsup.despensa.ui.favoritos.FavoritosScreen
 import com.tecsup.despensa.ui.lista.ListaScreen
 import com.tecsup.despensa.ui.lista.ListaViewModel
@@ -109,7 +110,10 @@ fun AppNav(
                 ) {
                     composable(Rutas.LISTA) {
                         val listaViewModel: ListaViewModel = viewModel(factory = viewModelFactory)
-                        ListaScreen(viewModel = listaViewModel)
+                        ListaScreen(
+                            viewModel = listaViewModel,
+                            onItemClick = { id -> navController.navigate(Rutas.detalle(id)) }
+                        )
                     }
 
                     composable(Rutas.LOGIN) {
@@ -131,7 +135,12 @@ fun AppNav(
                         arguments = listOf(navArgument("id") { type = NavType.IntType })
                     ) { entry ->
                         val id = entry.arguments?.getInt("id") ?: 0
-                        DetalleScreen(id = id)
+                        val detalleViewModel: DetalleViewModel = viewModel(factory = viewModelFactory)
+                        DetalleScreen(
+                            id = id,
+                            viewModel = detalleViewModel,
+                            onVolver = { navController.popBackStack() }
+                        )
                     }
 
                     composable(Rutas.FAVORITOS) {
