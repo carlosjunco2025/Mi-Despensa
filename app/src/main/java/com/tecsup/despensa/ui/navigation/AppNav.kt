@@ -140,7 +140,7 @@ private fun ContenidoSesion(
                             onClick = {
                                 sesionViewModel.cerrarSesion()
                                 navController.navigate(Rutas.LOGIN) {
-                                    popUpTo(Rutas.LISTA) { inclusive = true }
+                                    popUpTo(0) { inclusive = true }
                                     launchSingleTop = true
                                 }
                             }

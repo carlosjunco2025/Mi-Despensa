@@ -76,8 +76,9 @@ class FirebaseAuthRepository(
             ?: usuario.email?.substringBefore("@")
             ?: "Usuario"
 
-        // Se acepta "admin", "Admin" o "ADMIN": el valor se escribe a mano en Firestore.
-        val rol = if (documento.getString("rol")?.trim()?.lowercase() == "admin") {
+        // Se acepta "admin", "Admin", "ADMIN" o "administrador": el valor se lee de Firestore.
+        val rolStr = documento.getString("rol")?.trim()?.lowercase() ?: ""
+        val rol = if (rolStr == "admin" || rolStr == "administrador") {
             Rol.ADMIN
         } else {
             Rol.USUARIO
