@@ -125,6 +125,17 @@ service cloud.firestore {
 El rol se lee **siempre** en `FirebaseAuthRepository` desde Firestore. Nunca se escribe
 en la UI ni se hardcodea en el código.
 
+### 2.5 Proyecto usado en esta entrega
+
+- **Project ID:** `mi-despensa-1f57c`
+- **Base de datos:** Firestore `(default)`
+- **Colección:** `usuarios` (un documento por usuario, con ID = UID)
+- **Paquete Android:** `com.tecsup.despensa`
+
+El `google-services.json` de ese proyecto se descarga de la consola y se coloca en
+`app/`. Está en `.gitignore`: **no se versiona**. Si el archivo no está, la app compila
+igual y arranca con el login local de respaldo (`AuthRepositoryLocal`).
+
 ---
 
 ## 3. Arquitectura
