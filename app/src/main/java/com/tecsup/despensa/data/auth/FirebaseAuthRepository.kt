@@ -44,15 +44,24 @@ class FirebaseAuthRepository(
         val perfil = UserProfileChangeRequest.Builder()
             .setDisplayName(nombre.trim())
             .build()
-        usuario.updateProfile(perfil).await()
 
-        firestore.collection("usuarios")
-            .document(usuario.uid)
-            .set(
-                mapOf("rol" to "usuario", "nombre" to nombre.trim()),
-                SetOptions.merge()
-            )
-            .await()
+        // El perfil y el rol son datos complementarios: si Firestore los rechaza
+        // (por ejemplo por reglas estrictas), la cuenta de Authentication igual
+        // queda creada y el rol se resuelve como "usuario" al iniciar sesión.
+        try {
+            usuario.updateProfile(perfil).await()
+            firestore.collection("usuarios")
+                .document(usuario.uid)
+                .set(
+                    mapOf("rol" to "usuario", "nombre" to nombre.trim()),
+                    SetOptions.merge()
+                )
+                .await()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            // Se ignora: el perfil se puede completar despues.
+        }
 
         Result.success(
             Sesion(
@@ -100,12 +109,19 @@ class FirebaseAuthRepository(
 
         if (!documento.exists()) {
             // Cuenta creada con Google: se registra el perfil base como usuario.
-            referencia.set(
-                mapOf(
-                    "rol" to "usuario",
-                    "nombre" to (usuario.displayName ?: usuario.email ?: "Usuario")
-                )
-            ).await()
+            // Si las reglas no lo permiten, el acceso continua igual.
+            try {
+                referencia.set(
+                    mapOf(
+                        "rol" to "usuario",
+                        "nombre" to (usuario.displayName ?: usuario.email ?: "Usuario")
+                    )
+                ).await()
+            } catch (e: CancellationException) {
+                throw e
+            } catch (_: Exception) {
+                // Perfil opcional: no se bloquea el inicio de sesion.
+            }
         }
 
         // Se acepta "admin", "Admin" o "ADMIN": el valor se escribe a mano en Firestore.
