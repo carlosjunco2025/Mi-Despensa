@@ -26,13 +26,13 @@ class ViewModelFactory(
                 ListaViewModel(container.itemRepository, container.notificador) as T
 
             modelClass.isAssignableFrom(LoginViewModel::class.java) ->
-                LoginViewModel(container.authRepository) as T
+                LoginViewModel(container.authRepository, container.itemRepository) as T
 
             modelClass.isAssignableFrom(RegistroViewModel::class.java) ->
-                RegistroViewModel(container.authRepository) as T
+                RegistroViewModel(container.authRepository, container.itemRepository) as T
 
             modelClass.isAssignableFrom(SesionViewModel::class.java) ->
-                SesionViewModel(container.authRepository) as T
+                SesionViewModel(container.authRepository, container.itemRepository) as T
 
             modelClass.isAssignableFrom(DetalleViewModel::class.java) ->
                 DetalleViewModel(container.itemRepository) as T
