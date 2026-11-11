@@ -17,6 +17,7 @@ import com.tecsup.despensa.ui.favoritos.FavoritosScreen
 import com.tecsup.despensa.ui.lista.ListaScreen
 import com.tecsup.despensa.ui.lista.ListaViewModel
 import com.tecsup.despensa.ui.login.LoginScreen
+import com.tecsup.despensa.ui.login.LoginViewModel
 
 object Rutas {
     const val LISTA = "lista"
@@ -47,7 +48,11 @@ fun AppNav(
         }
 
         composable(Rutas.LOGIN) {
-            LoginScreen()
+            val loginViewModel: LoginViewModel = viewModel(factory = viewModelFactory)
+            LoginScreen(
+                viewModel = loginViewModel,
+                onLoginExitoso = {}
+            )
         }
 
         composable(

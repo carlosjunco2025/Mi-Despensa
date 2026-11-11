@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.tecsup.despensa.AppContainer
 import com.tecsup.despensa.ui.lista.ListaViewModel
+import com.tecsup.despensa.ui.login.LoginViewModel
 
 /**
  * Crea los ViewModels inyectando las dependencias del AppContainer.
@@ -18,6 +19,9 @@ class ViewModelFactory(
         return when {
             modelClass.isAssignableFrom(ListaViewModel::class.java) ->
                 ListaViewModel(container.itemRepository, container.notificador) as T
+
+            modelClass.isAssignableFrom(LoginViewModel::class.java) ->
+                LoginViewModel(container.authRepository) as T
 
             else -> throw IllegalArgumentException("ViewModel no soportado: ${modelClass.name}")
         }
